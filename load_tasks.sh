@@ -27,7 +27,7 @@ if [ "$(ls -A /opt/snap/tasks)" ]; then
   for t in /opt/snap/tasks/*; do
   	log "loading task from $t"
     sed -e "s/<%NODE%>/$(getHostname)/g" $t > /tmp/$(basename $t)
-    log $(snapctl task create -t /tmp/$(basename $t) 2>&1 )
+    log $(/opt/snap/bin/snapctl task create -t /tmp/$(basename $t) 2>&1 )
   done
 fi
 

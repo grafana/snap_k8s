@@ -5,18 +5,10 @@ set -x
 DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 cd ${DIR}
 
-VERSION=${VERSION:-v0.16.1-beta}
-
 mkdir -p tmp/
 mkdir -p plugins/
-cd tmp
-if [ ! -d snap-${VERSION}/plugin ]; then
-    wget https://github.com/intelsdi-x/snap/releases/download/${VERSION}/snap-plugins-${VERSION}-linux-amd64.tar.gz
-    ar -zxf snap-plugins-${VRESION}-linux-amd64.tar.gz
-fi
+cd plugins
 
 for p in collector-cpu collector-docker collector-interface collector-iostat collector-load collector-meminfo publisher-graphite; do
-    cp snap-${VERSION}/plugin/snap-plugin-$p $DIR/plugins/
+  curl -sfL https://s3-us-west-2.amazonaws.com/snap.ci.snap-telemetry.io/plugins/snap-plugin-collector-cpu/latest/linux/x86_64/snap-plugin-$p -o snap-plugin-$p
 done
-
-
