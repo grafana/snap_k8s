@@ -10,11 +10,13 @@ function getNodeName {
 }
 
 if [ "$(ls -A /opt/snap/tasks/)" ]; then
-  mkdir /opt/snap/tasks/startup
-  for t in /opt/snap/tasks/*; do
-  	log "loading task from $t"
-    #sed -e "s/<%NODE%>/$(getNodeName)/g" -i $t
-    sed -e "s/<%NODE%>/$(getNodeName)/g" $t >/opt/snap/tasks/startup/$(basename $t)
+  mkdir /opt/snap/tasks_startup
+  for t in /opt/snap/tasks/*.{yaml,yml,json}; do
+  	if [ -f "$t" ]; then
+	  	echo "loading task from $t"
+	    #sed -e "s/<%NODE%>/$(getNodeName)/g" -i $t
+	    sed -e "s/<%NODE%>/$(getNodeName)/g" $t >/opt/snap/tasks_startup/$(basename $t)
+	fi
   done
 fi
 
