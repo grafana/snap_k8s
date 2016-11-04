@@ -1,4 +1,4 @@
-VERSION=v7
+VERSION=v8
 REPO=raintank
 all: build
 
