@@ -11,6 +11,9 @@ For manual deployment the following kubernetes manifest can be used.
 ```
 apiVersion: v1
 kind: ConfigMap
+metadata:
+  name: snap-tasks
+  namespace: kube-system
 data:
   core.json: |-
     {
@@ -40,7 +43,7 @@ data:
                 {
                   "plugin_name": "graphite",
                   "config": {
-                    "prefix": "snap.CLUSTER_NAME.POD_NAME",
+                    "prefix": "snap.CLUSTER_NAME.<%NODE%>",
                     "server": "graphite.host.name",
                     "port": 2003
                   }
@@ -73,8 +76,10 @@ spec:
         - name: SNAP_URL
           value: "http://localhost:8181"
         image: raintank/snap_k8s:latest
-        imagePullPolicy: IfNotPresent
+        imagePullPolicy: Always
         name: snap
+        securityContext:
+          privileged: true
         ports:
         - containerPort: 8181
           hostPort: 8181
@@ -96,8 +101,6 @@ spec:
       hostNetwork: true
       hostPID: true
       restartPolicy: Always
-      securityContext:
-        privileged: true
       terminationGracePeriodSeconds: 30
       volumes:
       - hostPath:
@@ -123,8 +126,6 @@ spec:
           name: snap-tasks
         name: snap-tasks
 ```
-
-
 
 ## Building
 
