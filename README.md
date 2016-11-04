@@ -9,171 +9,119 @@ For the best results, we recommend you use the Grafana kubernetes-app see - http
 For manual deployment the following kubernetes manifest can be used.
 
 ```
-{
-  "version": 1,
-  "schedule": {
-    "type": "simple",
-    "interval": "10s"
-  },
-  "workflow": {
-    "collect": {
-      "metrics": {
-        "/intel/docker/*":{},
-        "/intel/procfs/cpu/*": {},
-        "/intel/procfs/meminfo/*": {},
-        "/intel/procfs/iface/*": {},
-        "/intel/linux/iostat/*": {},
-        "/intel/procfs/load/*": {}
-      },
-      "config": {
-        "/intel/procfs": {
-          "proc_path": "/proc_host"
-        }
-      },
-      "process": null,
-      "publish": [
-        {
-          "plugin_name": "graphite",
-          "config": {
-            "prefix": "snap.k8s",
-            "server": "my.graphite.host",
-            "port": 2003
+apiVersion: v1
+kind: ConfigMap
+data:
+  core.json: |-
+    {
+          "version": 1,
+          "schedule": {
+            "type": "simple",
+            "interval": "10s"
+          },
+          "start": true,
+          "workflow": {
+            "collect": {
+              "metrics": {
+                "/intel/docker/*":{},
+                "/intel/procfs/cpu/*": {},
+                "/intel/procfs/meminfo/*": {},
+                "/intel/procfs/iface/*": {},
+                "/intel/linux/iostat/*": {},
+                "/intel/procfs/load/*": {}
+              },
+              "config": {
+                "/intel/procfs": {
+                  "proc_path": "/proc_host"
+                }
+              },
+              "process": null,
+              "publish": [
+                {
+                  "plugin_name": "graphite",
+                  "config": {
+                    "prefix": "snap.CLUSTER_NAME.POD_NAME",
+                    "server": "graphite.host.name",
+                    "port": 2003
+                  }
+                }
+              ]
+            }
           }
         }
-      ]
-    }
-  }
-}
-{
-  "kind": "DaemonSet",
-  "apiVersion": "extensions/v1beta1",
-  "metadata": {
-    "name": "snap",
-    "namespace": "kube-system",
-    "labels": {
-      "daemon": "snapd"
-    }
-  },
-  "spec": {
-    "selector": {
-      "matchLabels": {
-        "daemon": "snapd"
-      }
-    },
-    "template": {
-      "metadata": {
-        "name": "snap",
-        "labels": {
-          "daemon": "snapd"
-        }
-      },
-      "spec": {
-        "volumes": [
-          {
-            "name": "dev",
-            "hostPath": {
-              "path": "/dev"
-            }
-          },
-          {
-            "name": "cgroup",
-            "hostPath": {
-              "path": "/sys/fs/cgroup"
-            }
-          },
-          {
-            "name": "docker-sock",
-            "hostPath": {
-              "path": "/var/run/docker.sock"
-            }
-          },
-          {
-            "name": "fs-stats",
-            "hostPath": {
-              "path": "/var/lib/docker"
-            }
-          },
-          {
-            "name": "docker",
-            "hostPath": {
-              "path": "/usr/bin/docker"
-            }
-          },
-          {
-            "name": "proc",
-            "hostPath": {
-              "path": "/proc"
-            }
-          },
-          {
-            "name": "snap-tasks",
-            "configMap": {
-              "name": "snap-tasks"
-            }
-          }
-        ],
-        "containers": [
-          {
-            "name": "snap",
-            "image": "raintank/snap_k8s:latest",
-            "ports": [
-              {
-                "name": "snap-api",
-                "hostPort": 8181,
-                "containerPort": 8181,
-                "protocol": "TCP"
-              }
-            ],
-            "env": [
-              {
-                "name": "PROCFS_MOUNT",
-                "value": "/proc_host"
-              },
-              {
-                "name": "LISTEN_PORT",
-                "value": "8181"
-          	  }
-            ],
-            "resources": {},
-            "volumeMounts": [
-              {
-                "name": "cgroup",
-                "mountPath": "/sys/fs/cgroup"
-              },
-              {
-                "name": "docker-sock",
-                "mountPath": "/var/run/docker.sock"
-              },
-              {
-                "name": "fs-stats",
-                "mountPath": "/var/lib/docker"
-              },
-              {
-                "name": "docker",
-                "mountPath": "/usr/local/bin/docker"
-              },
-              {
-                "name": "proc",
-                "mountPath": "/proc_host"
-              },
-              {
-                "name": "snap-tasks",
-                "mountPath": "/opt/snap/tasks"
-              }
-            ],
-            "imagePullPolicy": "IfNotPresent",
-            "securityContext": {
-              "privileged": true
-            }
-          }
-        ],
-        "restartPolicy": "Always",
-        "hostNetwork": true,
-        "hostPID": true
-      }
-    }
-  }
-}
+---
+apiVersion: extensions/v1beta1
+kind: DaemonSet
+metadata:
+  labels:
+    daemon: snapd
+  name: snap
+  namespace: kube-system
+spec:
+  template:
+    metadata:
+      labels:
+        daemon: snapd
+      name: snap
+    spec:
+      containers:
+      - env:
+        - name: PROCFS_MOUNT
+          value: /proc_host
+        - name: LISTEN_PORT
+          value: "8181"
+        - name: SNAP_URL
+          value: "http://localhost:8181"
+        image: raintank/snap_k8s:latest
+        imagePullPolicy: IfNotPresent
+        name: snap
+        ports:
+        - containerPort: 8181
+          hostPort: 8181
+          name: snap-api
+          protocol: TCP
+        volumeMounts:
+        - mountPath: /sys/fs/cgroup
+          name: cgroup
+        - mountPath: /var/run/docker.sock
+          name: docker-sock
+        - mountPath: /var/lib/docker
+          name: fs-stats
+        - mountPath: /usr/local/bin/docker
+          name: docker
+        - mountPath: /proc_host
+          name: proc
+        - mountPath: /opt/snap/tasks
+          name: snap-tasks
+      hostNetwork: true
+      hostPID: true
+      restartPolicy: Always
+      securityContext:
+        privileged: true
+      terminationGracePeriodSeconds: 30
+      volumes:
+      - hostPath:
+          path: /dev
+        name: dev
+      - hostPath:
+          path: /sys/fs/cgroup
+        name: cgroup
+      - hostPath:
+          path: /var/run/docker.sock
+        name: docker-sock
+      - hostPath:
+          path: /var/lib/docker
+        name: fs-stats
+      - hostPath:
+          path: /usr/bin/docker
+        name: docker
+      - hostPath:
+          path: /proc
+        name: proc
+      - configMap:
+          defaultMode: 420
+          name: snap-tasks
+        name: snap-tasks
 ```
 
 
