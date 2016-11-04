@@ -17,8 +17,9 @@ function wait_for_snap {
   done
 }
 
-function getHostname {
-  hostname | sed -e "s/\./_/g"
+function getNodeName {
+  NODE_NAME=${NODE_NAME:-$(hostname)}
+  echo $NODE_NAME | sed -e "s/\./_/g"
 }
 
 wait_for_snap
@@ -26,7 +27,7 @@ wait_for_snap
 if [ "$(ls -A /opt/snap/tasks)" ]; then
   for t in /opt/snap/tasks/*; do
   	log "loading task from $t"
-    sed -e "s/<%NODE%>/$(getHostname)/g" $t > /tmp/$(basename $t)
+    sed -e "s/<%NODE%>/$(getNodeName)/g" $t > /tmp/$(basename $t)
     log $(/opt/snap/bin/snapctl task create -t /tmp/$(basename $t) 2>&1 )
   done
 fi
