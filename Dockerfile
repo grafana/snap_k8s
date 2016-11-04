@@ -1,10 +1,12 @@
 FROM intelsdi/snap:xenial
 
-ENV SNAP_URL=http://localhost:8181
+RUN apt-get update && apt-get -y install netcat-traditional sysstat curl
 
-RUN apt-get update && apt-get -y install netcat-traditional sysstat
+ENV PLUGIN_URL=https://s3-us-west-2.amazonaws.com/snap.ci.snap-telemetry.io/plugins
 
-COPY plugins/* /opt/snap/plugins/
+RUN for p in collector-cpu collector-docker collector-interface collector-iostat collector-load collector-meminfo publisher-graphite; do \
+  curl -sfL $PLUGIN_URL/snap-plugin-$p/latest/linux/x86_64/snap-plugin-$p -o /opt/snap/plugins/snap-plugin-$p ; done
+
 COPY snapd.conf /etc/snap/snapd.conf
 
 RUN chmod a+x /opt/snap/plugins/*
