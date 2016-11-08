@@ -4,8 +4,10 @@ RUN apt-get update && apt-get -y install netcat-traditional sysstat curl
 
 ENV PLUGIN_URL=https://s3-us-west-2.amazonaws.com/snap.ci.snap-telemetry.io/plugins
 
-RUN for p in collector-cpu collector-docker collector-interface collector-iostat collector-load collector-meminfo publisher-graphite; do \
-  curl -sfL $PLUGIN_URL/snap-plugin-$p/latest/linux/x86_64/snap-plugin-$p -o /opt/snap/plugins/snap-plugin-$p ; done
+RUN for p in collector-cpu collector-interface collector-iostat collector-load collector-meminfo publisher-graphite; do \
+  curl --create-dirs $PLUGIN_URL/snap-plugin-$p/latest/linux/x86_64/snap-plugin-$p -o /opt/snap/plugins/snap-plugin-$p; done
+
+COPY plugins/snap-plugin-collector-docker /opt/snap/plugins/snap-plugin-collector-docker
 
 COPY snapd.conf /etc/snap/snapd.conf
 
