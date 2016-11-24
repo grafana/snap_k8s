@@ -7,15 +7,12 @@ ENV PLUGIN_URL=https://s3-us-west-2.amazonaws.com/snap.ci.snap-telemetry.io/plug
 RUN for p in collector-cpu collector-interface collector-iostat collector-load collector-meminfo publisher-graphite; do \
   curl --create-dirs $PLUGIN_URL/snap-plugin-$p/latest/linux/x86_64/snap-plugin-$p -o /opt/snap/plugins/snap-plugin-$p; done
 
-COPY plugins/snap-plugin-collector-docker /opt/snap/plugins/snap-plugin-collector-docker
+COPY plugins/snap-plugin-collector-docker plugins/snap-plugin-collector-kubestate /opt/snap/plugins/
 
 COPY snapd.conf /etc/snap/snapd.conf
 
 RUN chmod a+x /opt/snap/plugins/*
 
 COPY start.sh /usr/local/bin
-RUN mkdir /opt/snap/tasks
-RUN chmod a+x /opt/snap/tasks
-
-RUN chmod a+x /opt/snap/bin/*
+RUN mkdir /opt/snap/tasks && chmod a+x /opt/snap/tasks && chmod a+x /opt/snap/bin/*
 CMD /usr/local/bin/start.sh
