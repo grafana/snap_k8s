@@ -9,10 +9,8 @@ RUN for p in collector-cpu collector-interface collector-iostat collector-load c
 
 COPY plugins/snap-plugin-collector-docker plugins/snap-plugin-collector-kubestate /opt/snap/plugins/
 
-COPY snapd.conf /etc/snap/snapd.conf
-
-RUN chmod a+x /opt/snap/plugins/*
+COPY snapteld.conf /etc/snap/snapteld.conf
 
 COPY start.sh /usr/local/bin
-RUN mkdir /opt/snap/tasks && chmod a+x /opt/snap/tasks && chmod a+x /opt/snap/bin/*
+RUN mkdir /opt/snap/tasks && chmod a+x /opt/snap/tasks && chmod a+x /opt/snap/bin/* && chmod a+x /opt/snap/sbin/* && chmod a+x /opt/snap/plugins/*
 CMD /usr/local/bin/start.sh

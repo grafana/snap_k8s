@@ -2,7 +2,7 @@
 
 
 LISTEN_PORT=${LISTEN_PORT:-8181}
-sed -e "s/port: 8181/port: $LISTEN_PORT/" -i /etc/snap/snapd.conf
+sed -e "s/port: 8181/port: $LISTEN_PORT/" -i /etc/snap/snapteld.conf
 
 function getNodeName {
   NODE_NAME=${NODE_NAME:-$(hostname)}
@@ -20,5 +20,5 @@ if [ "$(ls -A /opt/snap/tasks/)" ]; then
   done
 fi
 
-# run SNAPD
-exec /opt/snap/bin/snapd -t ${SNAP_TRUST_LEVEL} -l ${SNAP_LOG_LEVEL} -o ''
+# run SNAPTELD
+exec /opt/snap/sbin/snapteld -t ${SNAP_TRUST_LEVEL} -l ${SNAP_LOG_LEVEL} -o ''
