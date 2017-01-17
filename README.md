@@ -71,10 +71,8 @@ spec:
       - env:
         - name: PROCFS_MOUNT
           value: /proc_host
-        - name: LISTEN_PORT
+        - name: SNAP_PORT
           value: "8181"
-        - name: SNAP_URL
-          value: "http://localhost:8181"
         image: raintank/snap_k8s:latest
         imagePullPolicy: Always
         name: snap
