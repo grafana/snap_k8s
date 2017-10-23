@@ -1,4 +1,4 @@
-VERSION=v21
+VERSION=v22
 REPO=raintank
 all: build
 
